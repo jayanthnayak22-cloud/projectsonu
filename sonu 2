@@ -1,0 +1,21 @@
+$ProjectId = "my-gcp-project"
+$Region = "asia-south1"
+$MigName = "web-mig"
+
+gcloud config set project $ProjectId
+
+$CurrentSize = gcloud compute instance-groups managed list-instances `
+    $MigName `
+    --region=$Region `
+    --format="value(instance)" | Measure-Object | Select-Object -ExpandProperty Count
+
+Write-Host "Current instance count: $CurrentSize"
+
+if ($CurrentSize -lt 2) {
+
+    Write-Host "Scaling up to minimum of 2 instances..."
+
+    gcloud compute instance-groups managed resize $MigName `
+        --region=$Region `
+        --size=2
+}
